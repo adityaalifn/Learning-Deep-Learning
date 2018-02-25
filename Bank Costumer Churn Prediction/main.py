@@ -62,3 +62,20 @@ y_pred = (y_pred > 0.5)
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 cm = confusion_matrix(y_test, y_pred)
+
+
+# Part 4 - Evaluating, Improving, and tuning the ANN
+
+# Evaluating
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import cross_val_score
+
+def build_classifier():
+    classifier = Sequential()
+    classifier.add(Dense(units=6, activation="relu", input_dim=11))
+    classifier.add(Dense(units=6, activation="relu"))
+    classifier.add(Dense(units=1, activation="sigmoid"))
+    classifier.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
+    return classifier
+
+classifier = KerasClassifier(build_fn=build_classifier,batch_size=10, epochs=100)
