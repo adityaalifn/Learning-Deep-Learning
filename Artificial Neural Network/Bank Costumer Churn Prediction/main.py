@@ -31,18 +31,19 @@ X_test = sc.transform(X_test)
 # Part 2 - Building the ANN!
 
 # Improting the Keras libraries and packages
-import keras
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 
 # Initializing the ANN
 classifier = Sequential()
 
 # Adding the input layer and the first hidden layer
 classifier.add(Dense(units=6, activation="relu", input_dim=11))
+classifier.add(Dropout(p=0.1))
 
 # Adding the second hidden layer
 classifier.add(Dense(units=6, activation="relu"))
+classifier.add(Dropout(p=0.1))
 
 # Adding the output layer
 classifier.add(Dense(units=1, activation="sigmoid"))
@@ -66,9 +67,11 @@ cm = confusion_matrix(y_test, y_pred)
 
 # Part 4 - Evaluating, Improving, and tuning the ANN
 
-# Evaluating
+# Evaluating the ANN
 from keras.wrappers.scikit_learn import KerasClassifier
 from sklearn.model_selection import cross_val_score
+from keras.models import Sequential
+from keras.layers import Dense
 
 def build_classifier():
     classifier = Sequential()
@@ -79,3 +82,31 @@ def build_classifier():
     return classifier
 
 classifier = KerasClassifier(build_fn=build_classifier,batch_size=10, epochs=100)
+accuracues = cross_val_score(estimator=classifier, X=X_train, y=y_train, cv=10, n_jobs=4)
+mean = accuracues.mean()
+variance = accuracues.std()
+
+
+#Tuninng the ANN
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn.model_selection import GridSearchCV
+from keras.models import Sequential
+from keras.layers import Dense
+
+def build_classifier(optimizer):
+    classifier = Sequential()
+    classifier.add(Dense(units=6, activation="relu", input_dim=11))
+    classifier.add(Dense(units=6, activation="relu"))
+    classifier.add(Dense(units=1, activation="sigmoid"))
+    classifier.compile(optimizer=optimizer, loss="binary_crossentropy", metrics=["accuracy"])
+    return classifier
+classifier = KerasClassifier(build_fn=build_classifier)
+parameters = {
+        "batch_size":[25,32],
+        "nb_epoch":[100,500],
+        "optimizer":["adam","rmsprop"]
+        }
+grid_search = GridSearchCV(estimator=classifier,param_grid=parameters, scoring="accuracy", cv=10)
+grid_search = grid_search.fit(X_train, y_train)
+best_parameters = grid_search.best_params_
+best_accuracy = grid_search.best_score_
